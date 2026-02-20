@@ -71,3 +71,23 @@ body {
   // Firefox support for inverted colors
   scrollbar-color: color-mix(in srgb, var(--bolt-elements-textPrimary), transparent 50%) transparent;
 }
+/* Final Mobile Fix for Preview Buttons */
+@media (max-width: 768px) {
+  /* This targets the specific header bar for the Export/Sync buttons */
+  header div.flex.items-center.gap-2.ml-auto {
+    flex-wrap: wrap !important;
+    justify-content: flex-end !important;
+    gap: 8px !important;
+    width: 100% !important;
+    margin-top: 5px !important;
+  }
+
+  /* Fixes the buttons so they don't turn into thin lines */
+  header div.flex.items-center.gap-2.ml-auto button {
+    padding: 4px 12px !important;
+    min-width: 60px !important;
+    height: 32px !important;
+    font-size: 11px !important;
+    flex: 0 0 auto !important;
+  }
+}
