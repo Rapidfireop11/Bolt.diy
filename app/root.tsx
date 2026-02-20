@@ -1,3 +1,4 @@
+import { redirect, type LoaderFunctionArgs } from '@remix-run/cloudflare';
 import { useStore } from '@nanostores/react';
 import type { LinksFunction } from '@remix-run/cloudflare';
 import { Links, Meta, Outlet, Scripts, ScrollRestoration } from '@remix-run/react';
@@ -16,6 +17,26 @@ import globalStyles from './styles/index.scss?url';
 import xtermStyles from '@xterm/xterm/css/xterm.css?url';
 
 import 'virtual:uno.css';
+
+// --- GATEKEEPER START ---
+export const loader = async ({ request, context }: LoaderFunctionArgs) => {
+  const url = new URL(request.url);
+  
+  if (url.pathname === "/login") {
+    return null;
+  }
+
+  const cookieHeader = request.headers.get("Cookie") || "";
+  const inviteCode = (context.cloudflare as any)?.env?.INVITE_CODE || "OMAN777";
+  const hasValidCookie = cookieHeader.includes(`invite_code=${inviteCode}`);
+
+  if (!hasValidCookie) {
+    return redirect("/login");
+  }
+
+  return null;
+};
+// --- GATEKEEPER END ---
 
 const toastAnimation = cssTransition({
   enter: 'animated fadeInRight',
@@ -125,13 +146,8 @@ export default function App() {
       timestamp: new Date().toISOString(),
     });
 
-    // Initialize debug logging with improved error handling
     import('./utils/debugLogger')
       .then(({ debugLogger }) => {
-        /*
-         * The debug logger initializes itself and starts disabled by default
-         * It will only start capturing when enableDebugMode() is called
-         */
         const status = debugLogger.getStatus();
         logStore.logSystem('Debug logging ready', {
           initialized: status.initialized,
