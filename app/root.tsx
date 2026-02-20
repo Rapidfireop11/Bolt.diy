@@ -18,25 +18,39 @@ import xtermStyles from '@xterm/xterm/css/xterm.css?url';
 
 import 'virtual:uno.css';
 
-// --- GATEKEEPER START ---
 export const loader = async ({ request, context }: LoaderFunctionArgs) => {
   const url = new URL(request.url);
   
-  if (url.pathname === "/login") {
+  // Allow login and admin pages to load without a code
+  if (url.pathname === "/login" || url.pathname === "/admin") {
     return null;
   }
 
   const cookieHeader = request.headers.get("Cookie") || "";
-  const inviteCode = (context.cloudflare as any)?.env?.INVITE_CODE || "OMAN777";
-  const hasValidCookie = cookieHeader.includes(`invite_code=${inviteCode}`);
+  const userCode = cookieHeader.split('invite_code=')[1]?.split(';')[0];
 
-  if (!hasValidCookie) {
+  if (!userCode) {
+    return redirect("/login");
+  }
+
+  // Check the Cloudflare KV Database
+  const kv = (context.cloudflare as any).env.INVITE_KV;
+  const dataString = await kv.get(userCode);
+  
+  if (!dataString) {
+    return redirect("/login");
+  }
+
+  const data = JSON.parse(dataString);
+  const now = Math.floor(Date.now() / 1000);
+
+  // Check Expiration and Usage Limit
+  if ((data.expires && now > data.expires) || (data.uses >= data.limit)) {
     return redirect("/login");
   }
 
   return null;
 };
-// --- GATEKEEPER END ---
 
 const toastAnimation = cssTransition({
   enter: 'animated fadeInRight',
@@ -44,40 +58,21 @@ const toastAnimation = cssTransition({
 });
 
 export const links: LinksFunction = () => [
-  {
-    rel: 'icon',
-    href: '/favicon.svg',
-    type: 'image/svg+xml',
-  },
+  { rel: 'icon', href: '/favicon.svg', type: 'image/svg+xml' },
   { rel: 'stylesheet', href: reactToastifyStyles },
   { rel: 'stylesheet', href: tailwindReset },
   { rel: 'stylesheet', href: globalStyles },
   { rel: 'stylesheet', href: xtermStyles },
-  {
-    rel: 'preconnect',
-    href: 'https://fonts.googleapis.com',
-  },
-  {
-    rel: 'preconnect',
-    href: 'https://fonts.gstatic.com',
-    crossOrigin: 'anonymous',
-  },
-  {
-    rel: 'stylesheet',
-    href: 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap',
-  },
+  { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
+  { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossOrigin: 'anonymous' },
+  { rel: 'stylesheet', href: 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap' },
 ];
 
 const inlineThemeCode = stripIndents`
   setTutorialKitTheme();
-
   function setTutorialKitTheme() {
     let theme = localStorage.getItem('bolt_theme');
-
-    if (!theme) {
-      theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-    }
-
+    if (!theme) theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
     document.querySelector('html')?.setAttribute('data-theme', theme);
   }
 `;
@@ -94,7 +89,6 @@ export const Head = createHead(() => (
 
 export function Layout({ children }: { children: React.ReactNode }) {
   const theme = useStore(themeStore);
-
   useEffect(() => {
     document.querySelector('html')?.setAttribute('data-theme', theme);
   }, [theme]);
@@ -102,64 +96,14 @@ export function Layout({ children }: { children: React.ReactNode }) {
   return (
     <>
       <ClientOnly>{() => <DndProvider backend={HTML5Backend}>{children}</DndProvider>}</ClientOnly>
-      <ToastContainer
-        closeButton={({ closeToast }) => {
-          return (
-            <button className="Toastify__close-button" onClick={closeToast}>
-              <div className="i-ph:x text-lg" />
-            </button>
-          );
-        }}
-        icon={({ type }) => {
-          switch (type) {
-            case 'success': {
-              return <div className="i-ph:check-bold text-bolt-elements-icon-success text-2xl" />;
-            }
-            case 'error': {
-              return <div className="i-ph:warning-circle-bold text-bolt-elements-icon-error text-2xl" />;
-            }
-          }
-
-          return undefined;
-        }}
-        position="bottom-right"
-        pauseOnFocusLoss
-        transition={toastAnimation}
-        autoClose={3000}
-      />
+      <ToastContainer position="bottom-right" transition={toastAnimation} autoClose={3000} />
       <ScrollRestoration />
       <Scripts />
     </>
   );
 }
 
-import { logStore } from './lib/stores/logs';
-
 export default function App() {
-  const theme = useStore(themeStore);
-
-  useEffect(() => {
-    logStore.logSystem('Application initialized', {
-      theme,
-      platform: navigator.platform,
-      userAgent: navigator.userAgent,
-      timestamp: new Date().toISOString(),
-    });
-
-    import('./utils/debugLogger')
-      .then(({ debugLogger }) => {
-        const status = debugLogger.getStatus();
-        logStore.logSystem('Debug logging ready', {
-          initialized: status.initialized,
-          capturing: status.capturing,
-          enabled: status.enabled,
-        });
-      })
-      .catch((error) => {
-        logStore.logError('Failed to initialize debug logging', error);
-      });
-  }, []);
-
   return (
     <Layout>
       <Outlet />
