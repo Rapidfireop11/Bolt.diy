@@ -1,5 +1,0 @@
-name = "bolt-oman"
-pages_build_output_dir = "./build/client"
-
-[vars]
-VITE_INVITE_CODE = "oman_2026"
