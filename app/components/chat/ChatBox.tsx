@@ -78,6 +78,10 @@ export const ChatBox: React.FC<ChatBoxProps> = (props) => {
          */
       )}
     >
+            <div className="bg-orange-500/10 border border-orange-500/20 p-2 mb-3 text-[10px] text-orange-200 text-center w-full rounded-md shadow-sm">
+        <strong>💡 Mobile Tip:</strong> Not all models work perfectly. If you see a "Server Error," try switching models in the settings below!
+      </div>
+
       <svg className={classNames(styles.PromptEffectContainer)}>
         <defs>
           <linearGradient

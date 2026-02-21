@@ -71,3 +71,28 @@ body {
   // Firefox support for inverted colors
   scrollbar-color: color-mix(in srgb, var(--bolt-elements-textPrimary), transparent 50%) transparent;
 }
+/* Mobile Optimization for Settings Buttons */
+@media (max-width: 768px) {
+  /* Targets the provider and model selector buttons */
+  button[class*='model-selector'],
+  button[class*='provider-selector'],
+  .settings-button, 
+  div[role="combobox"] button {
+    padding: 6px 10px !important;
+    font-size: 12px !important;
+    height: 36px !important;
+    min-width: unset !important;
+  }
+
+  /* Makes the icons inside the buttons smaller too */
+  button[class*='selector'] svg {
+    width: 14px !important;
+    height: 14px !important;
+  }
+
+  /* Ensures the settings labels don't take up too much room */
+  .settings-label {
+    font-size: 11px !important;
+    margin-bottom: 2px !important;
+  }
+}
