@@ -18,6 +18,7 @@ import XAIProvider from './providers/xai';
 import HyperbolicProvider from './providers/hyperbolic';
 import AmazonBedrockProvider from './providers/amazon-bedrock';
 import GithubProvider from './providers/github';
+import KimiCodingProvider from './providers/kimi-coding';
 import MoonshotProvider from './providers/moonshot';
 import ZaiProvider from './providers/z-ai';
 
@@ -31,6 +32,7 @@ export {
   GroqProvider,
   HuggingFaceProvider,
   HyperbolicProvider,
+  KimiCodingProvider,
   MistralProvider,
   MoonshotProvider,
   OllamaProvider,
