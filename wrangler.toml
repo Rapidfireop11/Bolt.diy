@@ -6,5 +6,4 @@ pages_build_output_dir = "./build/client"
 send_metrics = false
 
 [vars]
-# This is your default starting code
 VITE_INVITE_CODE = "oman_2026"
