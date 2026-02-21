@@ -4,9 +4,10 @@ import { redirect, type ActionFunctionArgs } from "@remix-run/cloudflare";
 export const action = async ({ request, context }: ActionFunctionArgs) => {
   const formData = await request.formData();
   const enteredCode = formData.get("inviteCode") as string;
+  
   const env = (context.cloudflare as any).env;
 
-  // This checks the main code AND any you add in the dashboard starting with CODE_
+  // This will check VITE_INVITE_CODE and any CODE_1, CODE_2 etc from the dashboard
   const allCodes = Object.keys(env)
     .filter((key) => key.startsWith("CODE_") || key === "VITE_INVITE_CODE")
     .map((key) => env[key]);
